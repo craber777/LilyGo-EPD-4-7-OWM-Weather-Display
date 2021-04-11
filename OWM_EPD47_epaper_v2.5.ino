@@ -58,9 +58,9 @@ float humidity_readings[max_readings]    = {0};
 float rain_readings[max_readings]        = {0};
 float snow_readings[max_readings]        = {0};
 
-long SleepDuration   = 60; // Sleep time in minutes, aligned to the nearest minute boundary, so if 30 will always update at 00 or 30 past the hour
-int  WakeupHour      = 8;  // Don't wakeup until after 07:00 to save battery power
-int  SleepHour       = 23; // Sleep after 23:00 to save battery power
+long SleepDuration   = 30; // Sleep time in minutes, aligned to the nearest minute boundary, so if 30 will always update at 00 or 30 past the hour
+int  WakeupHour      = 6;  // Don't wakeup until after 07:00 to save battery power
+int  SleepHour       = 1; // Sleep after 23:00 to save battery power
 long StartTime       = 0;
 long SleepTimer      = 0;
 long Delta           = 30; // ESP32 rtc speed compensation, prevents display at xx:59:yy and then xx:00:yy (one minute later) to save power
@@ -456,7 +456,7 @@ void DisplayPressureSection(int x, int y, float pressure, String slope) {
   setFont(OpenSans12B);
   DrawPressureAndTrend(x - 25, y + 10, pressure, slope);
   if (WxConditions[0].Visibility > 0) {
-    Visibility(x + 145, y, String(WxConditions[0].Visibility) + "M");
+    Visibility(x + 145, y, String(WxConditions[0].Visibility) + "m");
     x += 150; // Draw the text in the same positions if one is zero, otherwise in-line
   }
   if (WxConditions[0].Cloudcover > 0) CloudCover(x + 145, y, WxConditions[0].Cloudcover);
@@ -557,7 +557,7 @@ void DisplayForecastSection(int x, int y) {
   } while (f < max_readings);
   int r = 0;
   do { // Pre-load temporary arrays with with data - because C parses by reference and remember that[1] has already been converted to I units
-    if (Units == "I") pressure_readings[r] = WxForecast[r].Pressure * 0.02953;   else pressure_readings[r] = WxForecast[r].Pressure;
+    if (Units == "I") pressure_readings[r] = WxForecast[r].Pressure * 0.02953;   else pressure_readings[r] = WxForecast[r].Pressure * 0.75006 - 16;
     if (Units == "I") rain_readings[r]     = WxForecast[r].Rainfall * 0.0393701; else rain_readings[r]     = WxForecast[r].Rainfall;
     if (Units == "I") snow_readings[r]     = WxForecast[r].Snowfall * 0.0393701; else snow_readings[r]     = WxForecast[r].Snowfall;
     temperature_readings[r]                = WxForecast[r].Temperature;
@@ -615,7 +615,7 @@ void DrawSegment(int x, int y, int o1, int o2, int o3, int o4, int o11, int o12,
 }
 
 void DrawPressureAndTrend(int x, int y, float pressure, String slope) {
-  drawString(x + 25, y - 10, String(pressure, (Units == "M" ? 0 : 1)) + (Units == "M" ? "hPa" : "in"), LEFT);
+  drawString(x + 25, y - 10, String(pressure * 0.75006 - 16, (Units == "M" ? 0 : 1)) + (Units == "M" ? "mmHg" : "in"), LEFT);
   if      (slope == "+") {
     DrawSegment(x, y, 0, 0, 8, -8, 8, -8, 16, 0);
     DrawSegment(x - 1, y, 0, 0, 8, -8, 8, -8, 16, 0);
@@ -1086,5 +1086,5 @@ void edp_update() {
   epd_draw_grayscale_image(epd_full_screen(), framebuffer); // Update the screen
 }
 /*
-   1085 lines of code 28-01-2021
+   1089 lines of code 11-04-2021
 */
